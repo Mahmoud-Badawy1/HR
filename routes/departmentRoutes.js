@@ -50,7 +50,7 @@ const { addDepartment, getDepartments, updateDepartment, deleteDepartment } = re
  *       201:
  *         description: تم الإنشاء
  */
-router.post('/', authorize(['Admin', 'HR']), addDepartment);
+router.post('/', authorize(['Admin', 'HR', 'Manager']), addDepartment);
 
 /**
  * @swagger
@@ -86,7 +86,7 @@ router.get('/', getDepartments);
  *       200:
  *         description: تم التحديث
  */
-router.put('/:id', authorize(['Admin', 'HR']), updateDepartment);
+router.put('/:id', authorize(['Admin', 'HR', 'Manager']), updateDepartment);
 
 /**
  * @swagger

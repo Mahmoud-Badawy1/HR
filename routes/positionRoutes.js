@@ -48,7 +48,7 @@ const { addPosition, getPositions, updatePosition, deletePosition } = require('.
  *       201:
  *         description: تم الإنشاء
  */
-router.post('/', authorize(['Admin', 'HR']), addPosition);
+router.post('/', authorize(['Admin', 'HR', 'Manager']), addPosition);
 
 /**
  * @swagger
@@ -90,7 +90,7 @@ router.get('/', getPositions);
  *       200:
  *         description: تم التحديث
  */
-router.put('/:id', authorize(['Admin', 'HR']), updatePosition);
+router.put('/:id', authorize(['Admin', 'HR', 'Manager']), updatePosition);
 
 /**
  * @swagger

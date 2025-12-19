@@ -42,7 +42,7 @@ const { addPenalty, getPenalties, deletePenalty } = require('../controllers/pena
  *       201:
  *         description: تم إضافة الجزاء
  */
-router.post('/', authorize(['Manager', 'HR']), addPenalty);
+router.post('/', authorize(['Admin', 'Manager', 'HR']), addPenalty);
 
 /**
  * @swagger
@@ -85,6 +85,6 @@ router.get('/', authorize(['Manager', 'HR', 'Admin']), getPenalties);
  *       200:
  *         description: تم الحذف
  */
-router.delete('/:id', authorize(['Manager', 'HR']), deletePenalty);
+router.delete('/:id', authorize(['Admin', 'Manager', 'HR']), deletePenalty);
 
 module.exports = router;
