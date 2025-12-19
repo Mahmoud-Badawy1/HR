@@ -30,7 +30,17 @@ connectDB(); // الاتصال بـ MongoDB
 const app = express();
 
 // 2. الميدلوير (Middleware) - الأمان ومعالجة البيانات
-app.use(helmet()); // حماية الرأس (Headers)
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "https://cdnjs.cloudflare.com"],
+            connectSrc: ["'self'"],
+        },
+    },
+})); // حماية الرأس (Headers) مع السماح بـ Swagger UI CDN
 app.use(cors());   // السماح بالاتصال من الـ Frontend (Next.js)
 app.use(express.json()); // قراءة بيانات الـ JSON
 
@@ -62,11 +72,15 @@ const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
 // Swagger UI options for Vercel (use CDN for static assets)
 const swaggerUiOptions = {
+    customCss: '.swagger-ui .topbar { display: none }',
     customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
     customJs: [
-        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.js'
-    ]
+        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.min.js'
+    ],
+    swaggerOptions: {
+        persistAuthorization: true,
+    },
 };
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, swaggerUiOptions));
