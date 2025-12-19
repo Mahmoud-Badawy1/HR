@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { requestSalfah, reviewSalfah, deleteRecord, deleteSalfah } = require('../controllers/salfahController');
+const { requestSalfah, reviewSalfah, deleteSalfah, getSalfahRequests } = require('../controllers/salfahController');
 
 /**
  * @swagger
@@ -108,5 +108,26 @@ router.post('/review', reviewSalfah);
  */
 router.delete('/:id', deleteSalfah);
 
+/**
+ * @swagger
+ * /api/salfah:
+ *   get:
+ *     summary: عرض طلبات السلف
+ *     tags: [Salfah]
+ *     parameters:
+ *       - in: query
+ *         name: employeeId
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [Pending, Active, Rejected, Settled]
+ *     responses:
+ *       200:
+ *         description: قائمة السلف
+ */
+router.get('/', getSalfahRequests);
 
 module.exports = router;

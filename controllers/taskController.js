@@ -29,11 +29,27 @@ exports.completeTask = async (req, res) => {
 };
 
 // دالة عامة يمكنك تطبيقها في كل متحكم مع تغيير الموديل
-exports.deleteTask = (Model, name) => async (req, res) => {
+// دالة حذف المهمة
+exports.deleteTask = async (req, res) => {
     try {
-        const record = await Model.findByIdAndDelete(req.params.id);
-        if (!record) return res.status(404).json({ message: `هذا الـ ${name} غير موجود` });
-        res.status(200).json({ success: true, message: `تم حذف الـ ${name} بنجاح` });
+        const record = await Task.findByIdAndDelete(req.params.id);
+        if (!record) return res.status(404).json({ message: "هذه المهمة غير موجودة" });
+        res.status(200).json({ success: true, message: "تم حذف المهمة بنجاح" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// جلب المهام
+exports.getTasks = async (req, res) => {
+    try {
+        const { assignedTo, status } = req.query;
+        let query = {};
+        if (assignedTo) query.assignedTo = assignedTo;
+        if (status) query.status = status;
+
+        const tasks = await Task.find(query).populate('assignedTo', 'fullName');
+        res.status(200).json({ success: true, count: tasks.length, data: tasks });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

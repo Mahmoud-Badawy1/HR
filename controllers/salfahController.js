@@ -53,11 +53,27 @@ exports.reviewSalfah = async (req, res) => {
 };
 
 // دالة عامة يمكنك تطبيقها في كل متحكم مع تغيير الموديل
-exports.deleteSalfah = (Model, name) => async (req, res) => {
+
+
+exports.getSalfahRequests = async (req, res) => {
     try {
-        const record = await Model.findByIdAndDelete(req.params.id);
-        if (!record) return res.status(404).json({ message: `هذا الـ ${name} غير موجود` });
-        res.status(200).json({ success: true, message: `تم حذف الـ ${name} بنجاح` });
+        const { employeeId, status } = req.query;
+        const query = {};
+        if (employeeId) query.employeeId = employeeId;
+        if (status) query.status = status;
+
+        const requests = await Salfah.find(query).populate('employeeId', 'fullName');
+        res.status(200).json({ success: true, data: requests });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+exports.deleteSalfah = async (req, res) => {
+    try {
+        const record = await Salfah.findByIdAndDelete(req.params.id);
+        if (!record) return res.status(404).json({ message: "هذا السلفة غير موجودة" });
+        res.status(200).json({ success: true, message: "تم حذف السلفة بنجاح" });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

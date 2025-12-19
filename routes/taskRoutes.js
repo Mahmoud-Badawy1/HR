@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createTask, completeTask, deleteTask } = require('../controllers/taskController');
+const { createTask, completeTask, deleteTask, getTasks } = require('../controllers/taskController');
 
 /**
  * @swagger
@@ -89,6 +89,27 @@ router.patch('/:id/complete', completeTask);
  *         description: خطأ في الخادم
  */
 router.delete('/:id', deleteTask);
+
+/**
+ * @swagger
+ * /api/tasks:
+ *   get:
+ *     summary: جلب المهام
+ *     tags: [Tasks]
+ *     parameters:
+ *       - in: query
+ *         name: assignedTo
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: قائمة المهام
+ */
+router.get('/', getTasks);
 
 
 module.exports = router;

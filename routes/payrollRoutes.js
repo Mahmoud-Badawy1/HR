@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authorize } = require('../middleware/authMiddleware'); // استيراد الحماية
-const { calculateMonthlyPayroll, deletePayroll } = require('../controllers/payrollController');
+const { calculateMonthlyPayroll, deletePayroll, getPayrollSlips } = require('../controllers/payrollController');
 
 /**
  * @swagger
@@ -14,7 +14,7 @@ const { calculateMonthlyPayroll, deletePayroll } = require('../controllers/payro
  * @swagger
  * /api/payroll/calculate:
  *   post:
- *     summary: تشغيل محرك حساب الرواتب لشهر معين
+ *     summary: تشغيل محرك حساب الرواتب لشهر معين (HR/Finance)
  *     tags: [Payroll]
  *     requestBody:
  *       required: true
@@ -22,6 +22,10 @@ const { calculateMonthlyPayroll, deletePayroll } = require('../controllers/payro
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - employeeId
+ *               - month
+ *               - year
  *             properties:
  *               employeeId:
  *                 type: string
@@ -29,17 +33,42 @@ const { calculateMonthlyPayroll, deletePayroll } = require('../controllers/payro
  *                 type: number
  *               year:
  *                 type: number
- *               gezaDays:
+ *               bonus:
  *                 type: number
- *                 description: عدد أيام الجزاء
- *               salfahDeduction:
+ *                 description: مكافأة إضافية (اختياري)
+ *               overtime:
  *                 type: number
- *                 description: قسط السلفة
+ *                 description: قيمة العمل الإضافي (اختياري)
  *     responses:
  *       200:
  *         description: تم حساب الراتب بنجاح
  */
-router.post('/calculate', calculateMonthlyPayroll);
+router.post('/calculate', authorize(['HR', 'Finance']), calculateMonthlyPayroll);
+
+/**
+ * @swagger
+ * /api/payroll:
+ *   get:
+ *     summary: عرض سجلات الرواتب
+ *     tags: [Payroll]
+ *     parameters:
+ *       - in: query
+ *         name: employeeId
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: month
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: year
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: قائمة الرواتب
+ */
+router.get('/', authorize(['HR', 'Finance', 'Manager']), getPayrollSlips);
 
 /**
  * @swagger
@@ -54,22 +83,9 @@ router.post('/calculate', calculateMonthlyPayroll);
  *         schema:
  *           type: string
  *         description: معرف سجل الراتب
- *       - in: header
- *         name: role
- *         required: true
- *         schema:
- *           type: string
- *           enum: [Manager]
- *         description: يجب أن تكون القيمة Manager
  *     responses:
  *       200:
  *         description: تم حذف سجل الراتب بنجاح
- *       403:
- *         description: ليس لديك صلاحية
- *       404:
- *         description: سجل الراتب غير موجود
- *       500:
- *         description: خطأ في الخادم
  */
 router.delete('/:id', authorize(['Manager']), deletePayroll);
 

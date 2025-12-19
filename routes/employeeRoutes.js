@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { addEmployee, getEmployeeProfile, deleteEmployee } = require('../controllers/employeeController');
+const { addEmployee, getEmployeeProfile, deleteEmployee, getAllEmployees, updateEmployee } = require('../controllers/employeeController');
 const { authorize } = require('../middleware/authMiddleware');
 
 /**
@@ -8,6 +8,38 @@ const { authorize } = require('../middleware/authMiddleware');
  * tags:
  *   name: Employees
  *   description: إدارة بيانات الموظفين والرواتب الأساسية
+ * components:
+ *   schemas:
+ *     Employee:
+ *       type: object
+ *       required:
+ *         - fullName
+ *         - nationalId
+ *         - email
+ *         - role
+ *         - financials
+ *       properties:
+ *         fullName:
+ *           type: string
+ *         fullNameArabic:
+ *           type: string
+ *         nationalId:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         role:
+ *           type: string
+ *           enum: [Employee, Manager, HR, Finance, Admin]
+ *         departmentId:
+ *           type: string
+ *         positionId:
+ *           type: string
+ *         financials:
+ *           type: object
+ *           properties:
+ *             basicSalary:
+ *               type: number
  */
 
 
@@ -41,9 +73,62 @@ const { authorize } = require('../middleware/authMiddleware');
  *       500:
  *         description: خطأ في الخادم
  */
-// هنا قمنا بتحديد أن الـ HR والـ Manager فقط هم من يملكون صلاحية الـ POST
-router.post('/add', authorize(['HR', 'Manager']), addEmployee);
+router.post('/add', authorize(['HR', 'Manager', 'Admin']), addEmployee);
 
+/**
+ * @swagger
+ * /api/employees:
+ *   get:
+ *     summary: عرض قائمة الموظفين (مع التصفح والبحث)
+ *     tags: [Employees]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: رقم الصفحة
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: عدد العناصر في الصفحة
+ *       - in: query
+ *         name: departmentId
+ *         schema:
+ *           type: string
+ *         description: تصفية حسب القسم
+ *     responses:
+ *       200:
+ *         description: تم جلب القائمة
+ */
+router.get('/', authorize(['HR', 'Manager', 'Admin']), getAllEmployees);
+
+/**
+ * @swagger
+ * /api/employees/{id}:
+ *   put:
+ *     summary: تحديث بيانات موظف (HR فقط)
+ *     tags: [Employees]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: معرف الموظف
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Employee'
+ *     responses:
+ *       200:
+ *         description: تم تحديث البيانات
+ *       404:
+ *         description: الموظف غير موجود
+ */
+router.put('/:id', authorize(['HR', 'Manager', 'Admin']), updateEmployee);
 
 /**
  * @swagger
@@ -85,7 +170,7 @@ router.get('/:id', getEmployeeProfile);
  *       500:
  *         description: خطأ في الخادم
  */
-router.delete('/:id', deleteEmployee);
+router.delete('/:id', authorize(['HR', 'Manager', 'Admin']), deleteEmployee);
 
 
 module.exports = router;

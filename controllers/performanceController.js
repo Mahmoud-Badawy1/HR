@@ -63,12 +63,12 @@ exports.submitReview = async (req, res) => {
 };
 
 
-// دالة عامة يمكنك تطبيقها في كل متحكم مع تغيير الموديل
-exports.deletePerformance = (Model, name) => async (req, res) => {
+// 3. حذف تقييم الأداء
+exports.deletePerformance = async (req, res) => {
     try {
-        const record = await Model.findByIdAndDelete(req.params.id);
-        if (!record) return res.status(404).json({ message: `هذا الـ ${name} غير موجود` });
-        res.status(200).json({ success: true, message: `تم حذف الـ ${name} بنجاح` });
+        const record = await PerformanceReview.findByIdAndDelete(req.params.id);
+        if (!record) return res.status(404).json({ message: "هذا التقييم غير موجود" });
+        res.status(200).json({ success: true, message: "تم حذف التقييم بنجاح" });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

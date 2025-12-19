@@ -17,6 +17,11 @@ const taskRoutes = require('./routes/taskRoutes');
 const payrollRoutes = require('./routes/payrollRoutes');
 const salfahRoutes = require('./routes/salfahRoutes');
 const performanceRoutes = require('./routes/performanceRoutes');
+const penaltyRoutes = require('./routes/penaltyRoutes');
+const departmentRoutes = require('./routes/departmentRoutes');
+const positionRoutes = require('./routes/positionRoutes');
+const settingRoutes = require('./routes/settingRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 // 1. إعدادات البيئة والاتصال
 dotenv.config();
@@ -44,8 +49,8 @@ const swaggerOptions = {
         },
         servers: [
             {
-                url: `http://localhost:${process.env.PORT || 5000}`,
-                description: 'Development Server'
+                url: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${process.env.PORT || 5000}`,
+                description: process.env.VERCEL_URL ? 'Production Server' : 'Development Server'
             }
         ],
     },
@@ -54,14 +59,30 @@ const swaggerOptions = {
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+// Swagger UI options for Vercel (use CDN for static assets)
+const swaggerUiOptions = {
+    customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
+    customJs: [
+        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.js'
+    ]
+};
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, swaggerUiOptions));
 
 // 4. تسجيل المسارات (API Endpoints)
+app.use('/api/people', employeeRoutes);  // Deprecated path? Keeping just in case or standardizing
 app.use('/api/employees', employeeRoutes);     // إدارة الموظفين
+app.use('/api/departments', departmentRoutes); // إدارة الأقسام
+app.use('/api/positions', positionRoutes);     // إدارة الوظائف
 app.use('/api/tasks', taskRoutes);             // التكليفات والمهام
 app.use('/api/payroll', payrollRoutes);         // محرك الرواتب والضرائب
 app.use('/api/salfah', salfahRoutes);           // السلف والقروض
 app.use('/api/performance', performanceRoutes); // تقييم الأداء والـ KPIs
+app.use('/api/penalties', penaltyRoutes);       // الجزاءات
+app.use('/api/settings', settingRoutes);        // إعدادات النظام
+app.use('/api/auth', authRoutes);               // المصادقة
 
 // 5. مسار فحص الحالة (Health Check)
 app.get('/health', (req, res) => {

@@ -7,19 +7,23 @@ const PayrollSlipSchema = new mongoose.Schema({
         year: { type: Number, required: true }
     },
     earnings: {
-        basic: mongoose.Types.Decimal128,
+        basic: { type: mongoose.Types.Decimal128, required: true },
+        allowances: { type: mongoose.Types.Decimal128, default: 0 },
         overtime: { type: mongoose.Types.Decimal128, default: 0 },
         bonus: { type: mongoose.Types.Decimal128, default: 0 },
-        gross: mongoose.Types.Decimal128
+        gross: { type: mongoose.Types.Decimal128, required: true }
     },
     deductions: {
-        socialInsurance: mongoose.Types.Decimal128, // 11% of InsuranceSalary
-        incomeTax: mongoose.Types.Decimal128,       // Based on Law 175/2023
-        martyrsFund: mongoose.Types.Decimal128,     // 0.05% of Gross
+        socialInsurance: { type: mongoose.Types.Decimal128, required: true }, // Employee Share
+        socialInsuranceEmployer: { type: mongoose.Types.Decimal128, required: true }, // Employer Share
+        incomeTax: { type: mongoose.Types.Decimal128, required: true },
+        martyrsFund: { type: mongoose.Types.Decimal128, required: true },
         salfah: { type: mongoose.Types.Decimal128, default: 0 },
-        geza: { type: mongoose.Types.Decimal128, default: 0 }
+        geza: { type: mongoose.Types.Decimal128, default: 0 },
+        otherDeductions: { type: mongoose.Types.Decimal128, default: 0 },
+        totalDeductions: { type: mongoose.Types.Decimal128, required: true }
     },
-    netSalary: mongoose.Types.Decimal128,
+    netSalary: { type: mongoose.Types.Decimal128, required: true },
     isCapped: { type: Boolean, default: false }, // True if 50% cap was triggered
     status: { type: String, enum: ["Draft", "Approved", "Paid"], default: "Draft" }
 }, { timestamps: true });
