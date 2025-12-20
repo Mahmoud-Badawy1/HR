@@ -1,5 +1,6 @@
 const PerformanceReview = require('../models/PerformanceReview');
 const Task = require('../models/Task');
+const Employee = require('../models/employees');
 
 // 1. الحصول على الأداء التلقائي (للمدير والـ HR قبل التقييم)
 exports.getAutoPerformance = async (req, res) => {
@@ -76,6 +77,73 @@ exports.deletePerformance = async (req, res) => {
         const record = await PerformanceReview.findByIdAndDelete(req.params.id);
         if (!record) return res.status(404).json({ message: "هذا التقييم غير موجود" });
         res.status(200).json({ success: true, message: "تم حذف التقييم بنجاح" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// 4. الحصول على أداء جميع الموظفين (للأدمن فقط)
+exports.getAllEmployeesPerformance = async (req, res) => {
+    try {
+        const { month, year } = req.query;
+
+        if (!month || !year) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "يجب تحديد الشهر والسنة" 
+            });
+        }
+
+        // Create date range for the requested month/year
+        const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+        const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59, 999);
+
+        // Get all active employees
+        const employees = await Employee.find({ status: 'Active' }).select('_id fullName fullNameArabic departmentId');
+
+        // Calculate performance for each employee in parallel
+        const performanceData = await Promise.all(
+            employees.map(async (employee) => {
+                const tasks = await Task.find({
+                    assignedTo: employee._id,
+                    status: 'Completed',
+                    completedAt: {
+                        $gte: startDate,
+                        $lte: endDate
+                    }
+                });
+
+                let taskPoints = 0;
+                if (tasks.length > 0) {
+                    const totalWeight = tasks.reduce((acc, t) => acc + t.weight, 0);
+                    taskPoints = Math.min((totalWeight / 10) * 100, 100);
+                }
+
+                return {
+                    employeeId: employee._id,
+                    fullName: employee.fullName,
+                    fullNameArabic: employee.fullNameArabic,
+                    departmentId: employee.departmentId,
+                    score: Math.round(taskPoints),
+                    completedTasksCount: tasks.length
+                };
+            })
+        );
+
+        // Calculate average score
+        const totalScore = performanceData.reduce((acc, p) => acc + p.score, 0);
+        const averageScore = performanceData.length > 0 ? Math.round(totalScore / performanceData.length) : 0;
+
+        res.status(200).json({
+            success: true,
+            data: {
+                month,
+                year,
+                averageScore,
+                totalEmployees: performanceData.length,
+                employees: performanceData
+            }
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

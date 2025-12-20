@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const { authorize } = require('../middleware/authMiddleware');
 const {
   getAutoPerformance,
-  submitReview, deletePerformance
+  submitReview, 
+  deletePerformance,
+  getAllEmployeesPerformance
 } = require('../controllers/performanceController');
 
 /**
@@ -62,6 +65,63 @@ const {
  *         description: خطأ في الخادم
  */
 router.get('/auto-score', getAutoPerformance);
+
+/**
+ * @swagger
+ * /api/performance/all-employees:
+ *   get:
+ *     summary: عرض أداء جميع الموظفين (للأدمن والـ HR فقط)
+ *     tags: [Performance]
+ *     parameters:
+ *       - in: query
+ *         name: month
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *         description: رقم الشهر
+ *       - in: query
+ *         name: year
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: السنة
+ *     responses:
+ *       200:
+ *         description: تم جلب أداء جميع الموظفين بنجاح
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 month:
+ *                   type: string
+ *                 year:
+ *                   type: string
+ *                 averageScore:
+ *                   type: number
+ *                 totalEmployees:
+ *                   type: integer
+ *                 employees:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       employeeId:
+ *                         type: string
+ *                       fullName:
+ *                         type: string
+ *                       score:
+ *                         type: number
+ *                       completedTasksCount:
+ *                         type: integer
+ *       403:
+ *         description: غير مصرح - للأدمن والـ HR فقط
+ *       500:
+ *         description: خطأ في الخادم
+ */
+router.get('/all-employees', authorize(['Admin', 'HR', 'Manager']), getAllEmployeesPerformance);
 
 /**
  * @swagger
